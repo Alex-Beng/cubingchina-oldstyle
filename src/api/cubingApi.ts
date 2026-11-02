@@ -1,4 +1,5 @@
 import { ApiBase, requestJson, type RequestOptions } from './http';
+import { readSnapshot } from './snapshot';
 import type {
   CompetitionSearchMeta,
   DbCompetition,
@@ -25,7 +26,36 @@ export interface CompetitionQuery {
 }
 
 export const cubingApi = {
-  listCompetitions(query: CompetitionQuery = {}, options: RequestOptions = {}) {
+  async listCompetitions(query: CompetitionQuery = {}, options: RequestOptions = {}) {
+    const canFilterLocally = !query.page && !query.pageSize && !query.status;
+    if (canFilterLocally && query.year) {
+      const snapshot = await readSnapshot<Paginated<DbCompetition> | DbCompetition[]>(
+        `competitions/${query.year}.json`,
+      );
+      if (snapshot) {
+        const items = Array.isArray(snapshot) ? snapshot : snapshot.data ?? [];
+        const filtered = items.filter((competition) => {
+          if (query.type && competition.type !== query.type) return false;
+          if (
+            query.event &&
+            !(competition.events ?? []).some((event) => event.eventId === query.event)
+          ) {
+            return false;
+          }
+          if (query.province) {
+            const match = (competition.locations ?? []).some(
+              (location) =>
+                location.provinceName === query.province ||
+                location.provinceCode === query.province,
+            );
+            if (!match) return false;
+          }
+          return true;
+        });
+        if (Array.isArray(snapshot)) return filtered;
+        return { ...snapshot, data: filtered, total: filtered.length };
+      }
+    }
     return requestJson<Paginated<DbCompetition> | DbCompetition[]>(
       ApiBase.cubing,
       '/competitions',
@@ -45,7 +75,11 @@ export const cubingApi = {
     );
   },
 
-  getCompetition(idOrAlias: string | number, options: RequestOptions = {}) {
+  async getCompetition(idOrAlias: string | number, options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<DbCompetitionDetail>(
+      `competition/${encodeURIComponent(String(idOrAlias))}.json`,
+    );
+    if (snapshot) return snapshot;
     return requestJson<DbCompetitionDetail>(
       ApiBase.cubing,
       `/competitions/${encodeURIComponent(String(idOrAlias))}`,
@@ -53,7 +87,11 @@ export const cubingApi = {
     );
   },
 
-  getCompetitionSchedule(idOrAlias: string | number, options: RequestOptions = {}) {
+  async getCompetitionSchedule(idOrAlias: string | number, options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<unknown>(
+      `schedule/${encodeURIComponent(String(idOrAlias))}.json`,
+    );
+    if (snapshot) return snapshot;
     return requestJson<unknown>(
       ApiBase.cubing,
       `/competitions/${encodeURIComponent(String(idOrAlias))}/schedule`,
@@ -77,14 +115,18 @@ export const cubingApi = {
     );
   },
 
-  getCompetitionMeta(options: RequestOptions = {}) {
+  async getCompetitionMeta(options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<CompetitionSearchMeta>('competition-meta.json');
+    if (snapshot) return snapshot;
     return requestJson<CompetitionSearchMeta>(ApiBase.wca, '/competition/search/meta', {
       ...options,
       cacheTtlMs: options.cacheTtlMs ?? 24 * 60 * 60_000,
     });
   },
 
-  listNews(page = 1, options: RequestOptions = {}) {
+  async listNews(page = 1, options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<Paginated<DbNews> | DbNews[]>(`news/page-${page}.json`);
+    if (snapshot) return snapshot;
     return requestJson<Paginated<DbNews> | DbNews[]>(ApiBase.cubing, '/news', {
       ...options,
       params: { page },
@@ -92,7 +134,11 @@ export const cubingApi = {
     });
   },
 
-  getNews(aliasOrId: string | number, options: RequestOptions = {}) {
+  async getNews(aliasOrId: string | number, options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<DbNews>(
+      `post/${encodeURIComponent(String(aliasOrId))}.json`,
+    );
+    if (snapshot) return snapshot;
     return requestJson<DbNews>(
       ApiBase.cubing,
       `/news/${encodeURIComponent(String(aliasOrId))}`,
@@ -107,7 +153,9 @@ export const cubingApi = {
     });
   },
 
-  listFaq(options: RequestOptions = {}) {
+  async listFaq(options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<Paginated<FaqItem> | FaqItem[]>('faq.json');
+    if (snapshot) return snapshot;
     return requestJson<Paginated<FaqItem> | FaqItem[]>(ApiBase.cubing, '/faq', {
       ...options,
       cacheTtlMs: options.cacheTtlMs ?? 24 * 60 * 60_000,
@@ -122,7 +170,11 @@ export const cubingApi = {
     );
   },
 
-  listFaqCategories(options: RequestOptions = {}) {
+  async listFaqCategories(options: RequestOptions = {}) {
+    const snapshot = await readSnapshot<Paginated<FaqCategory> | FaqCategory[]>(
+      'faq-categories.json',
+    );
+    if (snapshot) return snapshot;
     return requestJson<Paginated<FaqCategory> | FaqCategory[]>(
       ApiBase.cubing,
       '/faq-categories',

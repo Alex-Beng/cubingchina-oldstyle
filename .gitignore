@@ -1,5 +1,7 @@
 node_modules/
 dist/
+# generated at build time by scripts/fetch-snapshot.mjs
+public/data/
 .DS_Store
 Thumbs.db
 *.log

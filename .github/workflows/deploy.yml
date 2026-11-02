@@ -5,6 +5,9 @@ on:
     branches:
       - master
       - main
+  schedule:
+    # refresh the API snapshot every 6 hours
+    - cron: '17 */6 * * *'
   workflow_dispatch:
 
 permissions:
@@ -34,6 +37,12 @@ jobs:
 
       - name: Build styles
         run: npm run build:styles
+
+      - name: Fetch API snapshot
+        env:
+          SNAPSHOT_NEWS_PAGES: '10'
+          SNAPSHOT_DETAIL_YEARS: '2'
+        run: npm run build:snapshot
 
       - name: Typecheck
         run: npm run typecheck

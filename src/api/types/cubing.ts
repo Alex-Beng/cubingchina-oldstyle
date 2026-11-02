@@ -38,6 +38,9 @@ export interface DbCompetition {
   registrationStartTime?: string | null;
   registrationEndTime?: string | null;
   status?: string;
+  locations?: CompetitionLocation[];
+  events?: CompetitionEvent[];
+  acceptedCount?: number;
   [key: string]: unknown;
 }
 

@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "npm run build:styles && vue-tsc --noEmit && vite build",
     "build:styles": "node scripts/build-styles.mjs",
+    "build:snapshot": "node scripts/fetch-snapshot.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "lint": "eslint . --ext .ts,.vue",
