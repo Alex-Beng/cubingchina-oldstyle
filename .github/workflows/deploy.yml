@@ -33,7 +33,18 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        env:
+          NODE_ENV: development
+        run: |
+          npm ci --include=dev --no-audit --no-fund
+          echo "::notice::NODE_ENV=${NODE_ENV} omit=$(npm config get omit) production=$(npm config get production)"
+          if [ -x node_modules/.bin/vue-tsc ]; then
+            echo "::notice::vue-tsc binary present"
+          else
+            echo "::error::vue-tsc binary missing after npm ci"
+            ls node_modules/.bin | head -40 | sed 's/^/::error::bin | /'
+            npm ls vue-tsc --depth=0 2>&1 | sed 's/^/::error::ls | /' || true
+          fi
 
       - name: Ensure styles are built
         run: |
