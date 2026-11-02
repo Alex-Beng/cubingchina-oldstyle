@@ -40,6 +40,9 @@ GitHub Actions 每 6 小时自动刷新一次快照。
 
 ## 本地开发
 
+需要 Node 20+ 与 npm 11（lockfile 由 npm 11 生成，npm 10 会解析失败）。
+仓库内的 `.npmrc` 已固定使用公共 registry。
+
 ```bash
 npm install
 npm run build:styles     # 编译 public/f 下的 LESS → public/f/build/css
