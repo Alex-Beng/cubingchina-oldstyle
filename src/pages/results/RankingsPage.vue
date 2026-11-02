@@ -110,9 +110,9 @@ function displayRank(index: number): string {
 }
 
 function competitionDate(row: { sourceCompetitionEndYear?: number; sourceCompetitionEndMonth?: number; sourceCompetitionEndDay?: number; sourceCompetitionYear: number; sourceCompetitionMonth: number; sourceCompetitionDay: number }): string {
-  const y = row.sourceCompetitionEndYear ?? row.sourceCompetitionYear;
-  const m = row.sourceCompetitionEndMonth ?? row.sourceCompetitionMonth;
-  const d = row.sourceCompetitionEndDay ?? row.sourceCompetitionDay;
+  const y = row.sourceCompetitionYear;
+  const m = row.sourceCompetitionMonth;
+  const d = row.sourceCompetitionDay;
   if (!y || !m || !d) return '';
   return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 }
