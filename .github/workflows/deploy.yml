@@ -40,24 +40,63 @@ jobs:
           if [ -f public/f/build/css/common.min.css ] && [ -f public/f/build/css/main.min.css ]; then
             echo "Committed styles found, skipping rebuild."
           else
-            npm run build:styles
+            set +e
+            npm run build:styles > /tmp/styles.log 2>&1
+            code=$?
+            set -e
+            if [ "$code" -ne 0 ]; then
+              echo "::error::styles build failed (exit $code)"
+              tail -n 30 /tmp/styles.log | sed 's/^/::error::styles | /'
+              exit "$code"
+            fi
           fi
 
       - name: Fetch API snapshot
         env:
           SNAPSHOT_NEWS_PAGES: '10'
           SNAPSHOT_DETAIL_YEARS: '2'
-        run: npm run build:snapshot
+        run: |
+          set +e
+          npm run build:snapshot > /tmp/snapshot.log 2>&1
+          code=$?
+          set -e
+          tail -n 5 /tmp/snapshot.log
+          if [ "$code" -ne 0 ]; then
+            echo "::error::snapshot failed (exit $code)"
+            tail -n 30 /tmp/snapshot.log | sed 's/^/::error::snapshot | /'
+            exit "$code"
+          fi
 
       - name: Typecheck
-        run: npm run typecheck
+        run: |
+          set +e
+          npm run typecheck > /tmp/typecheck.log 2>&1
+          code=$?
+          set -e
+          if [ "$code" -ne 0 ]; then
+            echo "::error::typecheck failed (exit $code)"
+            tail -n 40 /tmp/typecheck.log | sed 's/^/::error::typecheck | /'
+            exit "$code"
+          fi
 
       - name: Build site
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
           VITE_CUBING_API_BASE: ${{ vars.VITE_CUBING_API_BASE || 'https://cubingchina-oldstyle-proxy.pythoneralex.workers.dev' }}
           VITE_WCA_API_BASE: ${{ vars.VITE_WCA_API_BASE || 'https://wca-api.cubing.com' }}
-        run: npx vite build
+        run: |
+          echo "node: $(node --version) npm: $(npm --version)"
+          ls node_modules/.bin/vite || echo "::warning::vite binary missing"
+          set +e
+          npx vite build > /tmp/build.log 2>&1
+          code=$?
+          set -e
+          tail -n 15 /tmp/build.log
+          if [ "$code" -ne 0 ]; then
+            echo "::error::vite build failed (exit $code)"
+            tail -n 40 /tmp/build.log | sed 's/^/::error::build | /'
+            exit "$code"
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
