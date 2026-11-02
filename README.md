@@ -50,13 +50,18 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-部署后会得到一个地址，形如：
+部署后会得到一个地址。本项目已部署的地址为：
 
 ```
-https://cubingchina-oldstyle-proxy.<your-account>.workers.dev
+https://cubingchina-oldstyle-proxy.pythoneralex.workers.dev
 ```
 
 免费额度为每天 10 万次请求，且带 60 秒边缘缓存。
+
+> ⚠️ **中国大陆网络**：`*.workers.dev` 域名通常被 DNS 污染（解析到 `185.60.216.50` 等无关 IP），
+> 无法直接访问。若面向大陆用户，请给 Worker 绑定自有域名
+> （Cloudflare Dashboard → Workers → 该 Worker → Settings → Domains & Routes → Add custom domain），
+> 并把该域名写入 `VITE_CUBING_API_BASE`。
 
 ### 2. 配置仓库变量
 
@@ -71,6 +76,9 @@ https://cubingchina-oldstyle-proxy.<your-account>.workers.dev
 ### 3. 启用 GitHub Pages
 
 `Settings → Pages → Build and deployment → Source` 选择 **GitHub Actions**。
+
+> 注意：不要选择 “Deploy from a branch”。分支部署会把仓库根目录当作站点发布，
+> 导致访问到的是源码 `index.html`（引用 `/src/main.ts`），所有 `f/` 资源都会 404。
 
 推送到 `master` 即可自动构建发布。
 
