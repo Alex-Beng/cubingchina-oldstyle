@@ -1,0 +1,6 @@
+name = "cubingchina-oldstyle-proxy"
+main = "index.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+# api.cubing.com is the only upstream that lacks CORS headers.

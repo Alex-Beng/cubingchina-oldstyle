@@ -1,0 +1,290 @@
+<?php $this->renderPartial('operation', $_data_); ?>
+<div class="col-lg-12 competition-<?php echo strtolower($competition->type); ?>">
+  <dl>
+    <?php if ($competition->type == Competition::TYPE_WCA): ?>
+    <dt><?php echo Yii::t('Competition', 'WCA Competition'); ?></dt>
+    <dd>
+      <?php echo Yii::t('Competition', 'This competition is recognized as an official World Cube Association (WCA) competition. Therefore, all competitors should be familiar with the {regulations}.<br/>Competitors are solely responsible for any penalties imposed due to unfamiliarity with the competition rules or failure to comply with on-site regulations. Such penalties shall not be attributed to Cubing China, the WCA, or the competition organizers.', array(
+        '{regulations}'=>Html::wcaRegulationLink(Yii::t('Competition', 'WCA regulations')),
+      ));?>
+    </dd>
+    <?php if ($competition->explanation): ?>
+    <dt>
+      <?php echo Yii::t('Competition', 'Competition Explanation'); ?>
+      <?php echo CHtml::link(Html::fontAwesome('question-circle'), 'https://cubing.com/faq#faq-15', array(
+        'target'=>'_blank',
+      )); ?>
+    </dt>
+    <dd>
+      <?php foreach ($competition->explanation as $explanation): ?>
+        <?php if (isset(Competition::EXPLANATION_MAP[$explanation->label])): ?>
+          <?php echo Yii::t('Competition', Competition::EXPLANATION_MAP[$explanation->label]); ?>
+          <br>
+        <?php endif; ?>
+      <?php endforeach; ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->series): ?>
+    <dt>
+      <?php echo Yii::t('Competition', 'WCA Series'); ?>
+      <?php echo CHtml::link(Html::fontAwesome('question-circle'), 'https://cubing.com/faq#faq-12', array(
+        'target'=>'_blank',
+      )); ?>
+    </dt>
+    <dd>
+      <?php echo Yii::t('Competition', 'This competition is part of a series along with {series}.', array(
+        '{series}'=>implode(Yii::t('common', ', '), array_map(function($series) {
+          $competition = $series->competition;
+          return CHtml::link($competition->getAttributeValue('name'), $competition->getUrl());
+        }, array_filter($competition->series->list, function($series) use ($competition) {
+          return $series->competition_id != $competition->id;
+        }))),
+      ));?>
+      <br>
+      <?php echo Yii::t('Competition', 'Competitors can only register for one in the WCA series. Please carefully review the competition rules regarding the WCA series before registering for this competition.'); ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->newcomer): ?>
+    <dt>
+      <?php echo Yii::t('Competition', 'WCA Newcomer Month'); ?>
+      <?php echo CHtml::link(Html::fontAwesome('question-circle'), 'https://cubing.com/faq#faq-14', array(
+        'target'=>'_blank',
+      )); ?>
+    </dt>
+    <dd>
+      <?php echo Yii::t('Competition', 'This competition is participating in the official WCA Newcomer Month.');?>
+    </dd>
+    <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($competition->wca_competition_id != ''): ?>
+    <dt><?php echo Yii::t('Competition', 'WCA Official Page'); ?></dt>
+    <dd><?php echo CHtml::link($competition->getWcaUrl(), $competition->getWcaUrl(), array('target'=>'_blank')); ?>
+    <?php endif; ?>
+    <?php if ($competition->tba == Competition::NO): ?>
+    <dt><?php echo Yii::t('Competition', 'Date'); ?></dt>
+    <dd><?php echo $competition->getDisplayDate(); ?></dd>
+    <?php if (!$competition->special): ?>
+    <dt><?php echo Yii::t('Competition', 'Location'); ?></dt>
+    <dd>
+      <?php $this->renderPartial('locations', $_data_); ?>
+    </dd>
+    <?php endif; ?>
+    <?php endif; ?>
+    <?php if (!$competition->complex_multi_location): ?>
+    <dt><?php echo Yii::t('Competition', 'Organizers'); ?></dt>
+    <dd>
+      <?php if ($competition->isOld()): ?>
+      <?php echo OldCompetition::formatInfo($competition->old->getAttributeValue('organizer')); ?>
+      <?php else: ?>
+      <?php foreach ($competition->organizer as $key=>$organizer): ?>
+      <?php if ($key > 0) echo Yii::t('common', ', '); ?>
+      <?php echo $organizer->user->getMailtoLink(); ?>
+      <?php endforeach; ?>
+      <?php endif; ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->delegate !== array() && !$competition->multi_countries): ?>
+    <dt><?php echo Yii::t('Competition', $competition->type == Competition::TYPE_WCA ? 'Delegates' : 'Main Judge'); ?></dt>
+    <dd>
+      <?php foreach ($competition->delegate as $key=>$delegate): ?>
+      <?php if ($key > 0) echo Yii::t('common', ', '); ?>
+      <?php echo $delegate->user->getMailtoLink(); ?>
+      <?php endforeach; ?>
+    </dd>
+    <?php elseif ($competition->isOld() && $competition->old->getAttributeValue('delegate')): ?>
+    <dt><?php echo Yii::t('Competition', $competition->type == Competition::TYPE_WCA ? 'Delegates' : 'Main Judge'); ?></dt>
+    <dd>
+      <?php echo OldCompetition::formatInfo($competition->old->getAttributeValue('delegate')); ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->has_qualifying_time): ?>
+    <dt id="events"><?php echo Yii::t('Competition', 'Events and Qualifying Times'); ?></dt>
+    <dd>
+      <div class="row">
+        <?php if ($competition->tba == Competition::NO): ?>
+        <div class="col-lg-12">
+          <?php echo Yii::t('Competition', 'Competitors have to meet the QUALIFYING TIMES of the competition events as below, by {date}.', [
+            '{date}'=>date('Y-m-d H:i:s', $competition->qualifying_end_time),
+          ]); ?><br>
+          <?php echo Yii::t('Competition', 'Qualification is based on wca official results.'); ?>
+        </div>
+        <?php endif; ?>
+        <div class="col-md-4 col-sm-6">
+          <?php $this->widget('GridView', [
+            'dataProvider'=>new CArrayDataProvider($competition->allEvents, [
+              'pagination'=>false,
+            ]),
+            'enableSorting'=>false,
+            'front'=>true,
+            'columns'=>[
+              [
+                'header'=>Yii::t('common', 'Event'),
+                'value'=>'Events::getFullEventNameWithIcon($data->event)',
+                'type'=>'raw',
+              ],
+              [
+                'header'=>Yii::t('Competition', 'Qualifying Time'),
+                'value'=>'$data->getQualifyTime()',
+                'type'=>'raw',
+              ],
+            ],
+          ]);
+          ?>
+        </div>
+      </div>
+    </dd>
+    <?php else: ?>
+    <dt id="events"><?php echo Yii::t('Competition', 'Events'); ?></dt>
+    <dd>
+      <?php echo implode(Yii::t('common', ', '), array_map(function($event) use ($competition) {
+        return Yii::t('event', $competition->getFullEventName($event));
+      }, array_keys($competition->getRegistrationEvents()))); ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->tba == Competition::NO): ?>
+    <?php if (!$competition->multi_countries): ?>
+    <dt id="fees"><?php echo Yii::t('Competition', 'Entry Fee'); ?>
+      <?php if ($competition->tba == Competition::NO): ?>
+      <?php echo CHtml::tag('span', array(
+        'class'=>'btn btn-xs btn-primary',
+        'id'=>'expand-fee',
+      ), Html::fontAwesome('plus') . 'more'); ?>
+      <?php endif; ?>
+    </dt>
+    <dd style="height:104px;overflow:hidden<?php if($competition->isWCACompetition()) echo ';min-height:125px'; ?>">
+      <div class="row">
+        <div class="col-md-6 col-sm-8">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th><?php echo Yii::t('Competition', 'Events'); ?></th>
+                  <th><?php echo $competition->firstStage; ?></th>
+                  <?php if ($competition->hasSecondStage): ?>
+                  <th><?php echo $competition->secondStage; ?></th>
+                  <?php endif; ?>
+                  <?php if ($competition->hasThirdStage): ?>
+                  <th><?php echo $competition->thirdStage; ?></th>
+                  <?php endif; ?>
+                </tr>
+              </thead>
+              <tbody>
+                <?php if (!$competition->complex_multi_location): ?>
+                <tr>
+                  <td><?php echo Yii::t('Competition', 'Base Entry Fee'); ?></td>
+                  <td>
+                    　<i class="fa fa-rmb"></i><?php echo $competition->entry_fee; ?>
+                    <?php if ($competition->isWCACompetition() && $competition->date >= Competition::WCA_DUES_START): ?>
+                    <div>　<?php echo Yii::t('Competition', '(includes {dues} for WCA Dues)', [
+                      '{dues}' => '<i class="fa fa-rmb"></i>' . $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST),
+                    ]); ?></div>
+                    <?php endif; ?>
+                  </td>
+                  <?php if ($competition->hasSecondStage): ?>
+                  <td>
+                    　<i class="fa fa-rmb"></i><?php echo $competition->getEventFee(Competition::EVENT_FEE_ENTRY, Competition::STAGE_SECOND); ?>
+                    <?php if ($competition->isWCACompetition() && $competition->date >= Competition::WCA_DUES_START): ?>
+                    <div>　<?php echo Yii::t('Competition', '(includes {dues} for WCA Dues)', [
+                      '{dues}' => '<i class="fa fa-rmb"></i>' . $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST),
+                    ]); ?></div>
+                    <?php endif; ?>
+                  </td>
+                  <?php endif; ?>
+                  <?php if ($competition->hasThirdStage): ?>
+                  <td>
+                    　<i class="fa fa-rmb"></i><?php echo $competition->getEventFee(Competition::EVENT_FEE_ENTRY, Competition::STAGE_THIRD); ?>
+                    <?php if ($competition->isWCACompetition() && $competition->date >= Competition::WCA_DUES_START): ?>
+                    <div>　<?php echo Yii::t('Competition', '(includes {dues} for WCA Dues)', [
+                      '{dues}' => '<i class="fa fa-rmb"></i>' . $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST),
+                    ]); ?></div>
+                    <?php endif; ?>
+                  </td>
+                  <?php endif; ?>
+                </tr>
+                <?php endif; ?>
+                <?php if ($competition->isWCACompetition() && $competition->date >= Competition::OLD_WCA_DUES_START && $competition->date <= Competition::OLD_WCA_DUES_END): ?>
+                <tr>
+                  <td><?php echo Yii::t('Competition', 'WCA Dues'); ?></td>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST); ?></td>
+                  <?php if ($competition->hasSecondStage): ?>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST); ?></td>
+                  <?php endif; ?>
+                  <?php if ($competition->hasThirdStage): ?>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $competition->getEventFee(Competition::EVENT_FEE_WCA_DUES, Competition::STAGE_FIRST); ?></td>
+                  <?php endif; ?>
+                </tr>
+                <?php endif;?>
+                <?php foreach ($competition->associatedEvents as $key=>$value): ?>
+                <tr>
+                  <td><?php echo Events::getFullEventNameWithIcon($key); ?></td>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $value['fee']; ?></td>
+                  <?php if ($competition->hasSecondStage): ?>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $competition->getEventFee($key, Competition::STAGE_SECOND); ?></td>
+                  <?php endif; ?>
+                  <?php if ($competition->hasThirdStage): ?>
+                  <td>&nbsp;+<i class="fa fa-rmb"></i><?php echo $competition->getEventFee($key, Competition::STAGE_THIRD); ?></td>
+                  <?php endif; ?>
+                </tr>
+                <?php endforeach; ?>
+              </tbody>
+            </table>
+        </div>
+      </div>
+    </dd>
+    <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($competition->person_num > 0): ?>
+    <dt><?php echo Yii::t('Competition', 'Limited Number of Competitor'); ?></dt>
+    <dd>
+      <?php if ($competition->isLimitByEvent()): ?>
+      <p><?php echo Yii::t('Competition', 'Each event has a limited number of competitors.'); ?></p>
+      <?php foreach ($competition->associatedEvents as $key=>$value): ?>
+        <?php echo Events::getFullEventNameWithIcon($key); ?>: <?php echo $value['competitor_limit']; ?><br>
+      <?php endforeach; ?>
+      <?php else: ?>
+      <?php echo $competition->person_num; ?></dd>
+      <?php endif; ?>
+    <?php endif; ?>
+    <?php if ($competition->reg_start > 0 && $competition->tba == Competition::NO): ?>
+    <dt><?php echo Yii::t('Competition', 'Registration Starting Time'); ?></dt>
+    <dd>
+      <?php echo date('Y-m-d H:i:s', $competition->reg_start); ?>
+      <?php if (time() < $competition->reg_start): ?>
+      <?php echo Html::countdown($competition->reg_start); ?>
+      <?php endif; ?>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->cancellation_end_time > 0 && $competition->tba == Competition::NO): ?>
+    <dt><?php echo Yii::t('Competition', 'Registration Cancellation Deadline'); ?></dt>
+    <dd><?php echo date('Y-m-d H:i:s', $competition->cancellation_end_time); ?></dd>
+    <?php endif; ?>
+    <?php if ($competition->reg_reopen_time > 0 && $competition->tba == Competition::NO): ?>
+    <dt><?php echo Yii::t('Competition', 'Registration Restarting Time'); ?></dt>
+    <dd>
+      <?php echo date('Y-m-d H:i:s', $competition->reg_reopen_time); ?>
+      <div class="text-info"><?php echo Yii::t('Competition', 'You can not register between {start} and {end}.', [
+        '{start}'=>date('Y-m-d H:i:s', $competition->cancellation_end_time),
+        '{end}'=>date('Y-m-d H:i:s', $competition->reg_reopen_time),
+      ]); ?></div>
+    </dd>
+    <?php endif; ?>
+    <?php if ($competition->tba == Competition::NO): ?>
+    <dt><?php echo Yii::t('Competition', 'Registration Ending Time'); ?></dt>
+    <dd>
+      <?php echo date('Y-m-d H:i:s', $competition->reg_end); ?>
+      <?php if (time() > $competition->reg_start && !$competition->isRegistrationFull() && !$competition->isRegistrationEnded()): ?>
+      <?php echo Html::countdown($competition->reg_end, [
+        'data-total-days'=>$competition->reg_start > 0 ? floor(($competition->reg_end - $competition->reg_start) / 86400) : 30,
+      ]); ?>
+      <?php endif; ?>
+    </dd>
+    <?php endif; ?>
+    <?php if (trim(strip_tags($competition->getAttributeValue('information'), '<img>')) != ''): ?>
+    <dt><?php echo Yii::t('Competition', 'About the Competition'); ?></dt>
+    <dd>
+      <?php echo $competition->getAttributeValue('information'); ?>
+    </dd>
+    <?php endif; ?>
+  </dl>
+  <?php $this->renderPartial('disclaimer'); ?>
+</div>

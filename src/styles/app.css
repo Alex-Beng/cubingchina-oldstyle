@@ -1,0 +1,187 @@
+/* 旧版站点样式的少量补充，主样式来自 public/f/build/css */
+#app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#app > .wrapper {
+  flex: 1 0 auto;
+}
+
+.loading-block {
+  padding: 40px 0;
+  font-size: 15px;
+}
+
+.loading-block .fa-spinner {
+  margin-right: 6px;
+}
+
+.navbar-collapse.collapse {
+  display: none !important;
+}
+
+.navbar-collapse.collapse.in,
+.navbar-collapse:not(.collapse) {
+  display: block !important;
+}
+
+@media (min-width: 768px) {
+  .navbar-collapse.collapse {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+
+.main-nav .dropdown.open > .dropdown-menu {
+  display: block;
+}
+
+a {
+  cursor: pointer;
+}
+
+.empty-hint {
+  padding: 30px 0;
+  text-align: center;
+  color: #999;
+}
+
+.filter-bar {
+  background: #f7f7f7;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+
+.filter-bar .form-group {
+  margin-right: 10px;
+}
+
+.filter-bar label {
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.event-icon {
+  font-family: 'event-icon' !important;
+}
+
+table.table-condensed > tbody > tr > td,
+table.table-condensed > tbody > tr > th {
+  vertical-align: middle;
+}
+
+.rank-cell {
+  width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-cell {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.person-link {
+  font-weight: 600;
+}
+
+.medal-gold {
+  color: #d4a017;
+}
+.medal-silver {
+  color: #8c8c8c;
+}
+.medal-bronze {
+  color: #a97142;
+}
+
+/* ===== 新版富文本 (cc-block) 在旧版皮肤下的降级渲染 ===== */
+.competition-rich .cc-block,
+.competition-rich section[data-cc-block] {
+  margin: 0 0 18px;
+}
+.competition-rich .cc-hero {
+  margin-bottom: 20px;
+}
+.competition-rich .cc-hero__panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #6091ba;
+  color: #fff;
+  padding: 28px 24px;
+}
+.competition-rich .cc-hero__bg {
+  display: none;
+}
+.competition-rich .cc-hero__body h1,
+.competition-rich .cc-hero__body h2,
+.competition-rich .cc-hero__body h3 {
+  margin-top: 0;
+  color: inherit;
+}
+.competition-rich .cc-card {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #fff;
+}
+.competition-rich .cc-card__header {
+  background: #f5f8fa;
+  border-bottom: 1px solid #e5e5e5;
+  padding: 8px 14px;
+}
+.competition-rich .cc-card__title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #4a4a4a;
+}
+.competition-rich .cc-card__icon {
+  display: none;
+}
+.competition-rich .cc-card__body {
+  padding: 12px 14px;
+}
+.competition-rich .cc-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.competition-rich .cc-columns--2 > .cc-column {
+  flex: 1 1 calc(50% - 7px);
+  min-width: 240px;
+}
+.competition-rich .cc-column > .cc-block:last-child {
+  margin-bottom: 0;
+}
+.competition-rich .rich-img,
+.competition-rich img {
+  max-width: 100%;
+  height: auto;
+}
+.competition-rich .rich-img--center {
+  display: block;
+  margin: 10px auto;
+}
+.competition-rich mark {
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.competition-rich ul,
+.competition-rich ol {
+  padding-left: 22px;
+}
+.competition-rich p:last-child {
+  margin-bottom: 0;
+}
+@media (max-width: 767px) {
+  .competition-rich .cc-columns--2 > .cc-column {
+    flex: 1 1 100%;
+  }
+}

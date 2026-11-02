@@ -1,0 +1,39 @@
+CubingChina Old Style
+=====================
+
+This project is a third-party, read-only front end that reproduces the legacy
+user interface of CubingChina (https://cubing.com, formerly
+https://cubingchina.com) on top of the public Cubing China API.
+
+Upstream attribution
+--------------------
+The user interface markup, stylesheets, LESS sources, icon fonts, images and
+translation messages in this repository are derived from the CubingChina
+project:
+
+    https://github.com/CubingChina/cubingchina
+    Copyright (C) CubingChina contributors
+    Licensed under the GNU General Public License version 2.0 (GPL-2.0)
+
+Files copied or adapted from the upstream project retain their original
+license. See LICENSE-GPL-2.0 for the full text.
+
+Third-party assets bundled with the upstream project
+----------------------------------------------------
+- Bootstrap 3 (MIT)
+- Font Awesome 4 (SIL OFL 1.1 for fonts, MIT for CSS)
+- jQuery (MIT)
+- ECharts (Apache-2.0)
+- Leaflet (BSD-2-Clause)
+
+Data
+----
+All competition, result and statistics data is retrieved at runtime from the
+public Cubing China API:
+
+    https://api.cubing.com
+    https://wca-api.cubing.com
+
+This project stores no data of its own and is not affiliated with or endorsed
+by Cubing China or the World Cube Association. Data is provided by the
+respective services under their own terms.
