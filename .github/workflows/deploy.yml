@@ -35,14 +35,20 @@ jobs:
         env:
           NODE_ENV: development
         run: |
-          npm cache clean --force || true
-          npm ci --include=dev --no-audit --no-fund
-          if [ ! -x node_modules/.bin/vue-tsc ]; then
-            echo "::warning::vue-tsc missing after npm ci, retrying once"
-            rm -rf node_modules/vue-tsc
-            npm install --no-save --include=dev --no-audit --no-fund vue-tsc@2.2.12
+          echo "::notice::node=$(node --version) npm=$(npm --version) cwd=$(pwd)"
+          npm cache clean --force > /dev/null 2>&1 || true
+          set +e
+          npm ci --include=dev --no-audit --no-fund > /tmp/install.log 2>&1
+          code=$?
+          set -e
+          echo "::notice::npm ci exit=$code vue-tsc=$(test -x node_modules/.bin/vue-tsc && echo ok || echo missing) vite=$(test -f node_modules/vite/bin/vite.js && echo ok || echo missing)"
+          tail -n 25 /tmp/install.log | sed 's/^/::warning::install | /'
+          echo "::notice::node_modules count=$(ls node_modules 2>/dev/null | wc -l) size=$(du -sh node_modules 2>/dev/null | cut -f1)"
+          df -h / | tail -n 1 | sed 's/^/::notice::disk | /'
+          if [ "$code" -ne 0 ]; then
+            echo "::error::npm ci failed (exit $code)"
+            exit "$code"
           fi
-          echo "::notice::NODE_ENV=${NODE_ENV} omit=$(npm config get omit) vue-tsc=$(test -x node_modules/.bin/vue-tsc && echo ok || echo missing)"
 
       - name: Ensure styles are built
         run: |
