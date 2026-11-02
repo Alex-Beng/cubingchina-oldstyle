@@ -106,6 +106,7 @@ export interface RankingsResponse {
 
 export interface RecordEntry {
   rank: number;
+  recordCode?: string;
   personId: string;
   personName: string;
   countryId: string;
@@ -143,12 +144,23 @@ export interface RecordHistoryEntry {
   countryId: string;
   countryName: string;
   result: number;
-  resultFormatted: string;
-  competitionId: string;
-  competitionName: string;
+  resultFormatted?: string;
+  gender?: string;
+  competitionId?: string;
+  competitionName?: string;
   competitionNameZh?: string;
-  date: string;
+  sourceCompetitionId?: string | null;
+  sourceCompetitionName?: string | null;
+  sourceCompetitionNameZh?: string | null;
+  sourceCompetitionYear?: number | null;
+  sourceCompetitionMonth?: number | null;
+  sourceCompetitionDay?: number | null;
+  sourceCompetitionEndYear?: number | null;
+  sourceCompetitionEndMonth?: number | null;
+  sourceCompetitionEndDay?: number | null;
+  date?: string;
 }
+
 
 export interface RecordHistoryResponse {
   eventId: string;

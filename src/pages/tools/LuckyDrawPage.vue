@@ -1,6 +1,12 @@
 ﻿<script setup lang="ts">
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '抽奖',
+  crumbs: [{ label: '工具' }, { label: '抽奖' }],
+});
 
 const { t } = useI18n();
 

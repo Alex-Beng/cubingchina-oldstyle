@@ -185,3 +185,36 @@ table.table-condensed > tbody > tr > th {
     flex: 1 1 100%;
   }
 }
+.page-description {
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+
+.form-inline .form-group {
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+.form-inline label {
+  margin-right: 6px;
+  font-weight: 600;
+}
+
+.rankings-filter,
+.records-filter {
+  margin-bottom: 6px;
+}
+
+.page-heading {
+  margin-bottom: 14px;
+}
+
+.breadcrumbs-list .current span {
+  color: #999;
+}
+.venue-cell {
+  color: #666;
+  font-size: 12px;
+  max-width: 460px;
+}

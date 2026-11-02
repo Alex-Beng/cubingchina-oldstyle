@@ -9,6 +9,12 @@ import { eventIconClass, eventNameKey } from '@/utils/events';
 import { useAsyncData } from '@/composables/useAsyncData';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '赛事成绩',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '赛事', to: '/results/competition' }, { label: '赛事成绩' }],
+});
 
 const { t } = useI18n();
 const route = useRoute();
@@ -59,7 +65,7 @@ void regionName;
 
         <div v-for="round in ev.rounds" :key="`${ev.eventId}-${round.roundTypeId}`" class="round-block">
           <h4>{{ round.roundName }}</h4>
-          <table class="table table-bordered table-condensed table-responsive">
+          <table class="table table-bordered table-condensed table-hover table-boxed table-responsive">
             <thead>
               <tr>
                 <th class="rank-cell">#</th>

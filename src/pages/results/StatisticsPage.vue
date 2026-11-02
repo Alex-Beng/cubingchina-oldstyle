@@ -10,6 +10,13 @@ import { useAsyncData } from '@/composables/useAsyncData';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
 import type { StatisticsBlockRow } from '@/api/types/wca';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '统计',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '统计' }],
+  description: '我们基于 WCA 官方比赛成绩，生成了关于中国比赛和选手的多项统计。',
+});
 
 const { t } = useI18n();
 const route = useRoute();
@@ -77,7 +84,7 @@ void eventNameKey;
         <p v-if="block.descriptionZh || block.description" class="text-muted">
           {{ block.descriptionZh || block.description }}
         </p>
-        <table class="table table-bordered table-condensed table-responsive">
+        <table class="table table-bordered table-condensed table-hover table-boxed table-responsive">
           <thead>
             <tr>
               <th v-for="col in block.columns" :key="col.key">

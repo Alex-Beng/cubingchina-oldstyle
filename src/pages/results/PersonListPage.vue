@@ -7,6 +7,13 @@ import { regionName } from '@/i18n';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
 import type { PersonSearchResult } from '@/api/types/wca';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '选手',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '选手' }],
+  description: '在这里你可以搜索 WCA 选手，输入姓名或 WCA ID 即可查询。',
+});
 
 const { t } = useI18n();
 const router = useRouter();
@@ -63,7 +70,7 @@ function goPerson(wcaId: string) {
 
     <AppLoading v-if="loading" />
     <AppError v-else-if="error" :message="error" />
-    <table v-else-if="searched" class="table table-bordered table-condensed table-responsive">
+    <table v-else-if="searched" class="table table-bordered table-condensed table-hover table-boxed table-responsive">
       <thead>
         <tr>
           <th>{{ t('common.Name', '姓名') }}</th>

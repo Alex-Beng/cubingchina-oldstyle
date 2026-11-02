@@ -5,18 +5,26 @@ import { useRoute } from 'vue-router';
 import SiteHeader from './SiteHeader.vue';
 import SiteNavibar from './SiteNavibar.vue';
 import SiteFooter from './SiteFooter.vue';
-import PageBreadcrumbs, { type Crumb } from './PageBreadcrumbs.vue';
+import PageBreadcrumbs from './PageBreadcrumbs.vue';
+import { usePageMeta } from '@/composables/usePageMeta';
 
 const props = withDefaults(
   defineProps<{
     title?: string;
-    crumbs?: Crumb[];
+    crumbs?: { label: string; to?: string }[];
   }>(),
   { title: '', crumbs: () => [] },
 );
 
 const route = useRoute();
 const { t } = useI18n();
+const meta = usePageMeta();
+
+const effectiveTitle = computed(() => props.title || meta.title);
+const effectiveCrumbs = computed(() =>
+  props.crumbs.length ? props.crumbs : meta.crumbs,
+);
+const description = computed(() => (props.title ? '' : meta.description));
 
 const bodyClass = computed(() => {
   const controller = (route.meta.controller as string) ?? 'site';
@@ -25,7 +33,6 @@ const bodyClass = computed(() => {
 });
 
 defineExpose({ bodyClass });
-void props;
 void t;
 </script>
 
@@ -35,11 +42,12 @@ void t;
     <SiteNavibar />
     <div class="content container">
       <div class="page-wrapper">
-        <header v-if="title" class="page-heading clearfix">
-          <h1 class="heading-title pull-left">{{ title }}</h1>
-          <PageBreadcrumbs v-if="crumbs.length" :crumbs="crumbs" />
+        <header v-if="effectiveTitle" class="page-heading clearfix">
+          <h1 class="heading-title pull-left">{{ effectiveTitle }}</h1>
+          <PageBreadcrumbs :crumbs="effectiveCrumbs" />
         </header>
         <div class="page-content">
+          <p v-if="description" class="page-description">{{ description }}</p>
           <div class="row page-row">
             <slot />
           </div>

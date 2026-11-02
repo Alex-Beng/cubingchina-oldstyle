@@ -1,12 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
-
-export interface Crumb {
-  label: string;
-  key?: string;
-  to?: string;
-}
+import type { Crumb } from '@/composables/usePageMeta';
 
 withDefaults(defineProps<{ crumbs: Crumb[] }>(), { crumbs: () => [] });
 
@@ -28,7 +23,7 @@ function label(crumb: Crumb): string {
       </li>
       <li
         v-for="(crumb, index) in crumbs"
-        :key="crumb.key ?? index"
+        :key="crumb.to ?? index"
         :class="{ current: index === crumbs.length - 1 }"
       >
         <RouterLink v-if="crumb.to && index !== crumbs.length - 1" :to="crumb.to">

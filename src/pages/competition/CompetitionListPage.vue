@@ -7,9 +7,16 @@ import { cubingApi } from '@/api/cubingApi';
 import { unwrapList, unwrapTotal } from '@/api/unwrap';
 import { formatDateRange, stripNamePinyin } from '@/utils/format';
 import { getEvent } from '@/utils/events';
+import type { DbCompetition } from '@/api/types/cubing';
 import AppPager from '@/components/AppPager.vue';
 import { useAsyncData } from '@/composables/useAsyncData';
 import AppLoading from '@/components/AppLoading.vue';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '赛事列表',
+  crumbs: [{ label: '赛事' }],
+});
 
 const { t } = useI18n();
 const route = useRoute();
@@ -75,6 +82,33 @@ function compTitle(c: { nameZh?: string; name?: string }): string {
   return c.nameZh || c.name || '';
 }
 
+const provinces = computed(() => {
+  const set = new Set<string>();
+  for (const c of competitions.value) {
+    for (const l of c.locations ?? []) {
+      if (l.provinceName) set.add(l.provinceName);
+    }
+  }
+  return [...set].sort();
+});
+
+function locationsOf(c: DbCompetition) {
+  return c.locations ?? [];
+}
+
+function rowClass(c: DbCompetition): string {
+  const today = new Date().toISOString().slice(0, 10);
+  const start = c.startDate ?? '';
+  const end = c.endDate || start;
+  if (end && today > end) return 'active';
+  if (start && today >= start && today <= end) return 'success';
+  const regStart = c.registrationStartTime ? String(c.registrationStartTime).slice(0, 10) : '';
+  const regEnd = c.registrationEndTime ? String(c.registrationEndTime).slice(0, 10) : '';
+  if (regStart && regEnd && today >= regStart && today <= regEnd) return 'danger';
+  if (regStart && today < regStart) return 'warning';
+  return '';
+}
+
 const pagerTo = () => ({ name: 'competition-index', query: route.query });
 void AppPager;
 void unwrapTotal;
@@ -110,6 +144,13 @@ void pagerTo;
         </select>
       </div>
       <div class="form-group pull-left">
+        <label>{{ t('common.Province', '省份') }}</label>
+        <select v-model="province" class="form-control input-sm" @change="applyFilter">
+          <option value="">{{ t('common.All', '全部') }}</option>
+          <option v-for="p in provinces" :key="p" :value="p">{{ p }}</option>
+        </select>
+      </div>
+      <div class="form-group pull-left">
         <input
           v-model="keyword"
           class="form-control input-sm"
@@ -136,24 +177,32 @@ void pagerTo;
     </div>
 
     <AppLoading v-if="listState.loading.value" />
-    <table v-else class="table table-bordered table-condensed table-responsive">
-      <thead>
-        <tr>
-          <th>{{ t('common.Name', '赛事') }}</th>
-          <th>{{ t('common.Date', '日期') }}</th>
-          <th>{{ t('common.City', '城市') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="c in competitions" :key="c.id">
-          <td><RouterLink :to="`/competition/${c.alias}`">{{ compTitle(c) }}</RouterLink></td>
-          <td class="result-cell">{{ formatDateRange(c.startDate, c.endDate) }}</td>
-          <td>{{ (c as any).cityName ?? '' }}</td>
-        </tr>
-        <tr v-if="!competitions.length">
-          <td colspan="3" class="text-center text-muted">{{ t('common.No data', '暂无数据') }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else class="table-responsive">
+      <table class="table table-bordered table-condensed table-hover table-boxed">
+        <thead>
+          <tr>
+            <th>{{ t('common.Date', '日期') }}</th>
+            <th>{{ t('Competition.Competition', '赛事') }}</th>
+            <th>{{ t('common.Province', '省份') }}</th>
+            <th>{{ t('common.City', '城市') }}</th>
+            <th>{{ t('common.Venue', '地点') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="c in competitions" :key="c.id" :class="rowClass(c)">
+            <td class="result-cell">{{ formatDateRange(c.startDate, c.endDate) }}</td>
+            <td>
+              <RouterLink :to="`/competition/${c.alias}`">{{ compTitle(c) }}</RouterLink>
+            </td>
+            <td>{{ locationsOf(c)[0]?.provinceName ?? '' }}</td>
+            <td>{{ locationsOf(c)[0]?.cityName ?? '' }}</td>
+            <td class="venue-cell">{{ locationsOf(c)[0]?.venueZh || locationsOf(c)[0]?.venue || '' }}</td>
+          </tr>
+          <tr v-if="!competitions.length">
+            <td colspan="5" class="text-center text-muted">{{ t('common.No data', '暂无数据') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>

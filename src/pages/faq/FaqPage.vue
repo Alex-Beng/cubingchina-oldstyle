@@ -8,6 +8,12 @@ import { currentLocale } from '@/i18n';
 import { useAsyncData } from '@/composables/useAsyncData';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '常见问题',
+  crumbs: [{ label: 'FAQ' }],
+});
 
 const { t } = useI18n();
 const route = useRoute();

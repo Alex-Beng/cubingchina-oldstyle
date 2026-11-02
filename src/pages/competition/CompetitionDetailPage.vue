@@ -12,6 +12,7 @@ import { useAsyncData } from '@/composables/useAsyncData';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
 import type { CompetitionI18nAttribute, ScheduleRow } from '@/api/types/cubing';
+import { setPageMeta } from '@/composables/usePageMeta';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -25,6 +26,18 @@ watch(alias, () => void state.reload());
 
 const comp = computed(() => state.data.value);
 
+watch(
+  () => comp.value,
+  (c) => {
+    if (!c) return;
+    setPageMeta({
+      title: c.nameZh || c.name,
+      crumbs: [{ label: '赛事', to: '/competition' }, { label: c.nameZh || c.name }],
+    });
+  },
+  { immediate: true },
+);
+
 const TABS = [
   { key: 'information', label: 'common.Detail', fallback: '赛事详情' },
   { key: 'schedule', label: 'common.Schedule', fallback: '赛程' },
@@ -34,12 +47,6 @@ const TABS = [
 ] as const;
 
 const activeTab = ref<string>('information');
-
-const title = computed(() => {
-  const c = comp.value;
-  if (!c) return '';
-  return isEn.value ? c.name : c.nameZh || c.name;
-});
 
 const events = computed(() => sortEvents([...(comp.value?.events ?? [])]));
 
@@ -155,8 +162,6 @@ function rowLabel(row: ScheduleRow): string {
     <AppLoading v-if="state.loading.value" />
     <AppError v-else-if="state.error.value" :message="state.error.value" />
     <template v-else-if="comp">
-      <h1 class="text-center">{{ title }}</h1>
-
       <div class="panel panel-info">
         <div class="panel-body">
           <div class="row">
@@ -233,7 +238,7 @@ function rowLabel(row: ScheduleRow): string {
           <template v-else>
             <div v-for="day in scheduleDays" :key="day.day" class="schedule-day">
               <h3>{{ day.day }}</h3>
-              <table class="table table-bordered table-condensed schedule-table">
+              <table class="table table-bordered table-condensed table-hover table-boxed schedule-table">
                 <tbody>
                   <tr v-for="row in day.items" :key="row.id">
                     <td class="schedule-time">{{ timeRange(row) }}</td>
@@ -270,7 +275,7 @@ function rowLabel(row: ScheduleRow): string {
               </h3>
               <div v-for="round in ev.rounds" :key="round.roundTypeId">
                 <h4>{{ round.roundName }}</h4>
-                <table class="table table-bordered table-condensed">
+                <table class="table table-bordered table-condensed table-hover table-boxed">
                   <thead>
                     <tr>
                       <th class="rank-cell">#</th>

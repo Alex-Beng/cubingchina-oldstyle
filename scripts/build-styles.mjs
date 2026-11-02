@@ -33,15 +33,69 @@ function resolveBootstrapMediaPaths(css) {
   );
 }
 
+const OUTPUT_CSS_DIR = path.join(outDir, 'css');
+
+/**
+ * 把 CSS 中的 url() 改写为「相对输出目录」的路径。
+ * 旧站的 styles.less 直接 @import 了 .css 文件，Less 会保留成 CSS @import，
+ * 生成后的相对路径会失效，所以这里先内联并重写资源路径。
+ */
+function rewriteUrls(css, assetDir) {
+  return css.replace(
+    /url\(\s*(['"]?)([^)'"]+\.(?:woff2?|ttf|eot|svg|png|jpe?g|gif))(?:\?[^)'"]*)?\1\s*\)/gi,
+    (match, quote, asset) => {
+      if (/^(data:|https?:|\/\/)/i.test(asset)) return match;
+      const abs = path.resolve(assetDir, asset);
+      if (!fs.existsSync(abs)) return match;
+      const rel = path.relative(OUTPUT_CSS_DIR, abs).split(path.sep).join('/');
+      return `url("${rel}")`;
+    },
+  );
+}
+
+function inlineCssImports(source, baseDir) {
+  return source.replace(
+    /@import\s+(?:\([^)]*\)\s*)?(['"])([^'"]+\.css)\1\s*;/g,
+    (match, _quote, rel) => {
+      if (/^(https?:)?\/\//i.test(rel) || rel.startsWith('data:')) return match;
+      const abs = path.resolve(baseDir, rel);
+      if (!fs.existsSync(abs)) {
+        console.warn(`  ! css import not found, kept as-is: ${rel}`);
+        return match;
+      }
+      const css = rewriteUrls(fs.readFileSync(abs, 'utf8'), path.dirname(abs));
+      return `/* inlined: ${rel} */\n${css}\n/* end inlined: ${rel} */\n`;
+    },
+  );
+}
+
+function fixRenderedUrls(css, sourceDir) {
+  const bases = [sourceDir, path.join(fDir, 'css'), fDir, OUTPUT_CSS_DIR];
+  return css.replace(
+    /url\(\s*(['"]?)([^)'"]+\.(?:woff2?|ttf|eot|svg|png|jpe?g|gif))(?:\?[^)'"]*)?\1\s*\)/gi,
+    (match, _quote, asset) => {
+      if (/^(data:|https?:|\/\/)/i.test(asset)) return match;
+      for (const base of bases) {
+        const abs = path.resolve(base, asset);
+        if (fs.existsSync(abs)) {
+          const rel = path.relative(OUTPUT_CSS_DIR, abs).split(path.sep).join('/');
+          return `url("${rel}")`;
+        }
+      }
+      return match;
+    },
+  );
+}
+
 async function compileLess(file) {
-  const source = fs.readFileSync(file, 'utf8');
+  const source = inlineCssImports(fs.readFileSync(file, 'utf8'), path.dirname(file));
   const result = await less.render(source, {
     filename: file,
     paths: [path.dirname(file), fDir, path.join(root, 'node_modules')],
     javascriptEnabled: true,
     compress: false,
   });
-  return result.css;
+  return fixRenderedUrls(result.css, path.dirname(file));
 }
 
 async function main() {

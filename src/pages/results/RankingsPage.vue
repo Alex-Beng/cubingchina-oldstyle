@@ -7,6 +7,7 @@ import { regionName } from '@/i18n';
 import { formatResult } from '@/utils/format';
 import { eventIconClass, eventNameKey, EVENTS } from '@/utils/events';
 import { useAsyncData } from '@/composables/useAsyncData';
+import { setPageMeta } from '@/composables/usePageMeta';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
 import AppPager from '@/components/AppPager.vue';
@@ -25,6 +26,25 @@ const gender = computed(() => String(route.query.gender ?? 'all'));
 const page = computed(() => {
   const n = Number(route.query.page ?? 1);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1;
+});
+
+const REGIONS = [
+  { type: 'country', id: 'China', label: '中国' },
+  { type: 'continent', id: 'Asia', label: '亚洲' },
+  { type: 'world', id: '', label: '世界' },
+];
+
+const GENDERS = [
+  { value: 'all', label: '所有' },
+  { value: 'm', label: '男' },
+  { value: 'f', label: '女' },
+];
+
+setPageMeta({
+  title: '个人排名',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '排名' }],
+  description:
+    '本页面列出了各地选手在所有WCA项目的个人排名，所有的排名成绩源自WCA赛事的官方排名。',
 });
 
 const state = useAsyncData(() =>
@@ -47,115 +67,173 @@ watch(
 const rows = computed(() => state.data.value?.results ?? []);
 const total = computed(() => state.data.value?.pagination?.total ?? rows.value.length);
 
-const regions = [
-  { type: 'country', id: 'China', labelKey: 'common.China' },
-  { type: 'continent', id: 'Asia', labelKey: 'common.Asia' },
-  { type: 'world', id: '', labelKey: 'common.World' },
-];
+const currentRegion = computed(
+  () => REGIONS.find((r) => r.type === regionType.value && r.id === regionId.value) ?? REGIONS[0]!,
+);
 
-const genderOptions = ref([
-  { value: 'all', labelKey: 'common.All' },
-  { value: 'm', labelKey: 'common.Male' },
-  { value: 'f', labelKey: 'common.Female' },
-]);
+const eventLabel = computed(() => {
+  const ev = EVENTS.find((e) => e.id === eventId.value);
+  return t(`event.${eventNameKey(eventId.value)}`, ev?.name ?? eventId.value) || eventId.value;
+});
 
 function updateQuery(patch: Record<string, string | undefined>) {
   const query: Record<string, string> = {};
   for (const [k, v] of Object.entries({ ...route.query, ...patch })) {
     if (v !== undefined && v !== '' && v !== null) query[k] = String(v);
   }
-  if (query.page === '1') delete query.page;
+  delete query.page;
   void router.push({ name: 'results-rankings', query });
 }
 
-const pagerTo = (p: number) => ({ name: 'results-rankings', query: { ...route.query, page: String(p) } });
+const battleIds = ref<string[]>([]);
 
-function eventLabel(id: string): string {
-  return t(`event.${eventNameKey(id)}`, EVENTS.find((e) => e.id === id)?.name ?? id);
+function toggleBattle(personId: string, event: Event): void {
+  const input = event.target as HTMLInputElement;
+  if (input.checked) {
+    if (!battleIds.value.includes(personId)) battleIds.value.push(personId);
+  } else {
+    battleIds.value = battleIds.value.filter((id) => id !== personId);
+  }
+  if (battleIds.value.length >= 2) {
+    const ids = battleIds.value.slice(0, 2).join('-');
+    battleIds.value = [];
+    void router.push(`/results/battle/${ids}`);
+  }
 }
-void genderOptions;
-void AppPager;
-void pagerTo;
-void regionName;
-void formatResult;
-void eventIconClass;
-void eventLabel;
+
+function displayRank(index: number): string {
+  if (index === 0) return String(rows.value[0]?.rank ?? 1);
+  const prev = rows.value[index - 1];
+  const current = rows.value[index];
+  if (prev && current && prev.result === current.result) return '';
+  return String(current?.rank ?? '');
+}
+
+function competitionDate(row: { sourceCompetitionEndYear?: number; sourceCompetitionEndMonth?: number; sourceCompetitionEndDay?: number; sourceCompetitionYear: number; sourceCompetitionMonth: number; sourceCompetitionDay: number }): string {
+  const y = row.sourceCompetitionEndYear ?? row.sourceCompetitionYear;
+  const m = row.sourceCompetitionEndMonth ?? row.sourceCompetitionMonth;
+  const d = row.sourceCompetitionEndDay ?? row.sourceCompetitionDay;
+  if (!y || !m || !d) return '';
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
+const pagerTo = (p: number) => ({
+  name: 'results-rankings',
+  query: { ...route.query, page: String(p) },
+});
+
+const genderLabel = computed(
+  () => GENDERS.find((g) => g.value === gender.value)?.label ?? '所有',
+);
 </script>
 
 <template>
-  <div class="col-lg-12 results-rankings">
-    <div class="filter-bar clearfix">
-      <div class="form-group pull-left">
-        <label>{{ t('common.Event', '项目') }}</label>
-        <select class="form-control input-sm" :value="eventId" @change="updateQuery({ event: ($event.target as HTMLSelectElement).value })">
-          <option v-for="e in EVENTS" :key="e.id" :value="e.id">{{ eventLabel(e.id) }}</option>
-        </select>
-      </div>
-      <div class="form-group pull-left">
-        <label>{{ t('common.Type', '类型') }}</label>
-        <select class="form-control input-sm" :value="type" @change="updateQuery({ type: ($event.target as HTMLSelectElement).value })">
-          <option value="single">{{ t('common.Single', '单次') }}</option>
-          <option value="average">{{ t('common.Average', '平均') }}</option>
-        </select>
-      </div>
-      <div class="form-group pull-left">
+  <div class="col-lg-12">
+    <form class="form-inline rankings-filter" @submit.prevent>
+      <div class="form-group">
         <label>{{ t('common.Region', '地区') }}</label>
         <select
-          class="form-control input-sm"
+          class="form-control"
           :value="`${regionType}:${regionId}`"
           @change="updateQuery({
             regionType: ($event.target as HTMLSelectElement).value.split(':')[0],
             regionId: ($event.target as HTMLSelectElement).value.split(':')[1],
           })"
         >
-          <option v-for="r in regions" :key="`${r.type}:${r.id}`" :value="`${r.type}:${r.id}`">
-            {{ t(r.labelKey, r.id || '世界') }}
+          <option v-for="r in REGIONS" :key="`${r.type}:${r.id}`" :value="`${r.type}:${r.id}`">
+            {{ r.label }}
           </option>
         </select>
       </div>
-      <div class="form-group pull-left">
-        <label>{{ t('common.Gender', '性别') }}</label>
-        <select class="form-control input-sm" :value="gender" @change="updateQuery({ gender: ($event.target as HTMLSelectElement).value })">
-          <option value="all">{{ t('common.All', '全部') }}</option>
-          <option value="m">{{ t('common.Male', '男') }}</option>
-          <option value="f">{{ t('common.Female', '女') }}</option>
+      <div class="form-group">
+        <label>{{ t('common.Event', '项目') }}</label>
+        <select
+          class="form-control"
+          :value="eventId"
+          @change="updateQuery({ event: ($event.target as HTMLSelectElement).value })"
+        >
+          <option v-for="e in EVENTS" :key="e.id" :value="e.id">
+            {{ t(`event.${e.nameZhKey}`, e.name) }}
+          </option>
         </select>
       </div>
+      <div class="form-group">
+        <label>{{ t('common.Gender', '性别') }}</label>
+        <select
+          class="form-control"
+          :value="gender"
+          @change="updateQuery({ gender: ($event.target as HTMLSelectElement).value })"
+        >
+          <option v-for="g in GENDERS" :key="g.value" :value="g.value">{{ g.label }}</option>
+        </select>
+      </div>
+      <button
+        type="button"
+        class="btn"
+        :class="type === 'single' ? 'btn-warning' : 'btn-theme'"
+        @click="updateQuery({ type: 'single' })"
+      >单次</button>
+      <button
+        type="button"
+        class="btn"
+        :class="type === 'average' ? 'btn-warning' : 'btn-theme'"
+        @click="updateQuery({ type: 'average' })"
+      >平均</button>
+    </form>
+
+    <div class="event-title">
+      <i :class="eventIconClass(eventId)"></i>
+      {{ eventLabel }}
+      &nbsp;&nbsp;{{ currentRegion.label }}&nbsp;&nbsp;{{ genderLabel }}&nbsp;&nbsp;
+      {{ type === 'single' ? '单次' : '平均' }}
     </div>
 
     <AppLoading v-if="state.loading.value" />
     <AppError v-else-if="state.error.value" :message="state.error.value" />
-    <table v-else class="table table-bordered table-condensed table-responsive">
-      <thead>
-        <tr>
-          <th class="rank-cell">#</th>
-          <th>{{ t('common.Person', '选手') }}</th>
-          <th>{{ t('common.Region', '地区') }}</th>
-          <th class="result-cell">{{ t('common.Result', '成绩') }}</th>
-          <th>{{ t('common.Competition', '比赛') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="row in rows" :key="`${row.personId}-${row.rank}`">
-          <td class="rank-cell">{{ row.rank }}</td>
-          <td>
-            <RouterLink class="person-link" :to="`/results/person/${row.personId}`">
-              {{ row.personName }}
-            </RouterLink>
-          </td>
-          <td>{{ regionName(row.countryId) }}</td>
-          <td class="result-cell">{{ row.resultFormatted || formatResult(row.result, eventId) }}</td>
-          <td>
-            <RouterLink :to="`/results/competition/${row.sourceCompetitionId}`">
-              {{ row.sourceCompetitionNameZh || row.sourceCompetitionName }}
-            </RouterLink>
-          </td>
-        </tr>
-        <tr v-if="!rows.length">
-          <td colspan="5" class="text-center text-muted">{{ t('common.No data', '暂无数据') }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-else class="table-responsive">
+      <table class="table table-bordered table-condensed table-hover table-boxed">
+        <thead>
+          <tr>
+            <th class="battle-checkbox">{{ t('common.Battle', '较量') }}</th>
+            <th>{{ t('statistics.Rank', '排名') }}</th>
+            <th>{{ t('statistics.Person', '姓名') }}</th>
+            <th>{{ t('common.Region', '地区') }}</th>
+            <th>{{ t('common.Result', '成绩') }}</th>
+            <th>{{ t('common.Competition', '比赛') }}</th>
+            <th>{{ t('common.Date', '日期') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(row, index) in rows" :key="`${row.personId}-${row.rank}`">
+            <td class="battle-checkbox">
+              <input
+                type="checkbox"
+                :value="row.personId"
+                :checked="battleIds.includes(row.personId)"
+                @change="toggleBattle(row.personId, $event)"
+              />
+            </td>
+            <td class="rank-cell">{{ displayRank(index) }}</td>
+            <td>
+              <RouterLink class="person-link" :to="`/results/person/${row.personId}`">
+                {{ row.personName }}
+              </RouterLink>
+            </td>
+            <td>{{ regionName(row.countryId) }}</td>
+            <td class="result-cell">{{ row.resultFormatted || formatResult(row.result, eventId) }}</td>
+            <td>
+              <RouterLink :to="`/results/competition/${row.sourceCompetitionId}`">
+                {{ row.sourceCompetitionNameZh || row.sourceCompetitionName }}
+              </RouterLink>
+            </td>
+            <td class="result-cell">{{ competitionDate(row) }}</td>
+          </tr>
+          <tr v-if="!rows.length">
+            <td colspan="7" class="text-center text-muted">{{ t('common.No data', '暂无数据') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
     <AppPager
       v-if="!state.loading.value && total > PAGE_SIZE"

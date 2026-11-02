@@ -14,9 +14,12 @@ const locale = computed(() => currentLocale());
 const items = computed<NavItem[]>(() => buildNavItems(locale.value));
 
 const colorful = computed(() => {
-  const controller = route.meta.controller as string | undefined;
-  return controller === 'competition' || controller === 'live';
+  const c = route.meta.controller as string | undefined;
+  return c === 'competition' || c === 'live';
 });
+
+const controller = computed(() => (route.meta.controller as string) ?? 'site');
+const action = computed(() => (route.meta.action as string) ?? 'index');
 
 function isActive(item: NavItem): boolean {
   if (!item.activeWhen) return false;
@@ -36,7 +39,13 @@ function toggleDropdown(key: string) {
         <button class="navbar-toggle" type="button">{{ t('common.Menu', '菜单') }}</button>
       </div>
       <div class="navbar-collapse" :class="{ collapse: !navOpen }" id="navbar-collapse">
-        <ul class="nav navbar-nav">
+        <ul class="nav navbar-nav" :class="[controller, `${controller}-${action}`]">
+          <li class="nav-item archive-new-site">
+            <a href="https://cubing.com" target="_blank" rel="noopener">
+              <i class="fa fa-external-link"></i>
+              {{ t('common.New Cubing China', '新版粗饼网') }}
+            </a>
+          </li>
           <li
             v-for="item in items"
             :key="item.key"

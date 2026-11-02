@@ -1,12 +1,23 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { watchEffect, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router';
 import MainLayout from '@/layouts/MainLayout.vue';
 
 const route = useRoute();
 
-const controller = computed(() => (route.meta.controller as string) ?? 'site');
-const action = computed(() => (route.meta.action as string) ?? 'index');
+function applyBodyClass(controller: string, action: string): void {
+  document.body.className = `${controller} ${controller}-${action}`;
+}
+
+watchEffect(() => {
+  const controller = (route.meta.controller as string) ?? 'site';
+  const action = (route.meta.action as string) ?? 'index';
+  applyBodyClass(controller, action);
+});
+
+onUnmounted(() => {
+  document.body.className = '';
+});
 </script>
 
 <template>
@@ -15,5 +26,4 @@ const action = computed(() => (route.meta.action as string) ?? 'index');
       <component :is="Component" :key="current.fullPath" />
     </RouterView>
   </MainLayout>
-  <div :data-controller="controller" :data-action="action" hidden></div>
 </template>

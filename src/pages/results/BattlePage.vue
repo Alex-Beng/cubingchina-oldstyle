@@ -7,6 +7,12 @@ import { formatResult, stripNamePinyin } from '@/utils/format';
 import { eventIconClass, eventNameKey } from '@/utils/events';
 import AppLoading from '@/components/AppLoading.vue';
 import AppError from '@/components/AppError.vue';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '较量',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '较量' }],
+});
 
 interface BattlePerson {
   person: { wcaId: string; name: string; countryId: string };
@@ -97,7 +103,7 @@ void swap;
     <AppError v-else-if="error === 'needTwo'" :message="t('common.Person', '选手')" />
     <AppError v-else-if="error" :message="error" />
     <template v-else-if="persons.length">
-      <table class="table table-bordered table-condensed battle-table">
+      <table class="table table-bordered table-condensed table-hover table-boxed battle-table">
         <thead>
           <tr>
             <th>{{ t('common.Event', '项目') }}</th>

@@ -6,6 +6,13 @@ import { wcaApi } from '@/api/wcaApi';
 import { unwrapList } from '@/api/unwrap';
 import AppLoading from '@/components/AppLoading.vue';
 import { useAsyncData } from '@/composables/useAsyncData';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '赛事',
+  crumbs: [{ label: '成绩', to: '/results' }, { label: '赛事' }],
+  description: '在这里你可以找到 WCA 比赛的赛事成绩。',
+});
 
 const { t } = useI18n();
 const route = useRoute();
@@ -52,7 +59,7 @@ void t;
     </div>
 
     <AppLoading v-if="state.loading.value" />
-    <table v-else class="table table-bordered table-condensed table-responsive">
+    <table v-else class="table table-bordered table-condensed table-hover table-boxed table-responsive">
       <thead>
         <tr>
           <th>{{ t('common.Competition', '比赛') }}</th>

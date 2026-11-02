@@ -1,6 +1,12 @@
 ﻿<script setup lang="ts">
 import { useI18n } from 'vue-i18n';
 import { RouterLink } from 'vue-router';
+import { setPageMeta } from '@/composables/usePageMeta';
+
+setPageMeta({
+  title: '成绩',
+  crumbs: [{ label: '成绩' }],
+});
 
 const { t } = useI18n();
 </script>
