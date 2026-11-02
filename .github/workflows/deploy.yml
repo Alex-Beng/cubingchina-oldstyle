@@ -41,8 +41,8 @@ jobs:
       - name: Build site
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
-          VITE_CUBING_API_BASE: ${{ vars.VITE_CUBING_API_BASE }}
-          VITE_WCA_API_BASE: ${{ vars.VITE_WCA_API_BASE }}
+          VITE_CUBING_API_BASE: ${{ vars.VITE_CUBING_API_BASE || 'https://cubingchina-oldstyle-proxy.pythoneralex.workers.dev' }}
+          VITE_WCA_API_BASE: ${{ vars.VITE_WCA_API_BASE || 'https://wca-api.cubing.com' }}
         run: npx vite build
 
       - name: Setup Pages
