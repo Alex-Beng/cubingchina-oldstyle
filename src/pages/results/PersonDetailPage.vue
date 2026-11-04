@@ -70,6 +70,38 @@ const recordGroups = computed(() => {
   return groups;
 });
 
+const medalSummary = computed(() => profile.data.value?.medalStats ?? null);
+const recordSummary = computed(() => profile.data.value?.recordStats ?? null);
+const sumOfRanks = computed(() => profile.data.value?.sumOfRanks ?? null);
+
+const podiums = computed(() => {
+  const groups = profile.data.value?.championshipPodiums ?? [];
+  const country = person.value?.countryId ? regionName(person.value.countryId) : '';
+  return groups
+    .filter((group) => (group.results?.length ?? 0) > 0)
+    .map((group) => {
+      let region = '世界';
+      if (group.key === 'continent') region = '亚洲';
+      if (group.key === 'country') region = country || '国家/地区';
+      return {
+        key: group.key,
+        title: `${region}${t('Results.Championship Podiums', '锦标赛领奖台')}`,
+        results: group.results,
+      };
+    });
+});
+
+function attemptsText(result: { attempts?: { attemptNumber: number; value: number; valueFormatted?: string }[] }): string {
+  const attempts = result.attempts ?? [];
+  if (!attempts.length) return '';
+  return attempts
+    .map((attempt) => {
+      const value = attempt.valueFormatted ?? formatResult(attempt.value);
+      return value;
+    })
+    .join(' ');
+}
+
 function eventLabel(eventId: string, fallback: string): string {
   return t(`event.${eventNameKey(eventId)}`, fallback);
 }
@@ -187,8 +219,51 @@ function genderText(g: string | undefined): string {
         </table>
       </div>
 
-      <template v-if="recordGroups.length">
+      <h2>{{ t('Results.Overall Medal Collection', '奖牌汇总') }}</h2>
+      <p v-if="medalSummary" class="medal-summary">
+        <span class="medal">金 {{ medalSummary.gold }}</span>
+        <span class="medal">银 {{ medalSummary.silver }}</span>
+        <span class="medal">铜 {{ medalSummary.bronze }}</span>
+      </p>
+      <p v-else class="text-muted">{{ t('common.No data', '暂无数据') }}</p>
+
+      <template v-if="sumOfRanks">
+        <h2>{{ t('statistics.Sum of Ranks', '排名总和') }}</h2>
+        <div class="table-responsive">
+          <table class="table table-bordered table-condensed table-hover table-boxed">
+            <thead>
+              <tr>
+                <th></th>
+                <th>{{ t('statistics.Sum of NR', '地区排名总和') }}</th>
+                <th>{{ t('statistics.Sum of CR', '洲际排名总和') }}</th>
+                <th>{{ t('statistics.Sum of WR', '世界排名总和') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ t('common.Single', '单次') }}</td>
+                <td>{{ sumOfRanks.single.country.rank }}</td>
+                <td>{{ sumOfRanks.single.continent.rank }}</td>
+                <td>{{ sumOfRanks.single.world.rank }}</td>
+              </tr>
+              <tr>
+                <td>{{ t('common.Average', '平均') }}</td>
+                <td>{{ sumOfRanks.average.country.rank }}</td>
+                <td>{{ sumOfRanks.average.continent.rank }}</td>
+                <td>{{ sumOfRanks.average.world.rank }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
+
+      <template v-if="recordSummary || recordGroups.length">
         <h2>{{ t('Results.Overall Record Collection', '纪录汇总') }}</h2>
+        <p v-if="recordSummary" class="record-summary">
+          <span class="record-badge">WR {{ recordSummary.wr }}</span>
+          <span class="record-badge">CR {{ recordSummary.cr }}</span>
+          <span class="record-badge">NR {{ recordSummary.nr }}</span>
+        </p>
         <div v-for="group in recordGroups" :key="group.scope" class="record-group">
           <h4>{{ group.label }}</h4>
           <p>
@@ -202,6 +277,45 @@ function genderText(g: string | undefined): string {
               {{ eventLabel(item.eventId, item.eventName) }}
             </RouterLink>
           </p>
+        </div>
+      </template>
+
+      <template v-for="group in podiums" :key="group.key">
+        <h2>{{ group.title }}</h2>
+        <div class="table-responsive">
+          <table class="table table-bordered table-condensed table-hover table-boxed">
+            <thead>
+              <tr>
+                <th>{{ t('common.Competition', '比赛') }}</th>
+                <th>{{ t('common.Event', '项目') }}</th>
+                <th>{{ t('Results.Place', '排名') }}</th>
+                <th>{{ t('common.Single', '单次') }}</th>
+                <th>{{ t('common.Average', '平均') }}</th>
+                <th>{{ t('common.Detail', '详情') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, i) in group.results" :key="i">
+                <td>
+                  <RouterLink :to="`/results/competition/${item.competitionId}`">
+                    {{ item.competitionNameZh || item.competitionName }}
+                  </RouterLink>
+                </td>
+                <td>
+                  <i :class="eventIconClass(item.eventId)"></i>
+                  {{ eventLabel(item.eventId, item.eventId) }}
+                </td>
+                <td>{{ item.position }}</td>
+                <td class="result-cell">
+                  {{ item.bestFormatted || formatResult(item.best, item.eventId) }}
+                </td>
+                <td class="result-cell">
+                  {{ item.averageFormatted || formatResult(item.average, item.eventId) }}
+                </td>
+                <td class="attempts-cell">{{ attemptsText(item) }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </template>
 
@@ -247,6 +361,38 @@ function genderText(g: string | undefined): string {
 }
 .record-link {
   margin-right: 12px;
+  white-space: nowrap;
+}
+.medal-summary {
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+.medal-summary .medal {
+  display: inline-block;
+  margin-right: 16px;
+  font-weight: 700;
+}
+.medal-summary .medal:nth-child(1) {
+  color: #d4a017;
+}
+.medal-summary .medal:nth-child(2) {
+  color: #8c8c8c;
+}
+.medal-summary .medal:nth-child(3) {
+  color: #a97142;
+}
+.record-summary .record-badge {
+  display: inline-block;
+  background: #6091ba;
+  color: #fff;
+  border-radius: 3px;
+  padding: 2px 10px;
+  margin-right: 10px;
+  font-size: 13px;
+}
+.attempts-cell {
+  font-size: 12px;
+  color: #666;
   white-space: nowrap;
 }
 </style>

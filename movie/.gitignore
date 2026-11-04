@@ -1,0 +1,6 @@
+out/
+frames/
+vo/
+*.wav
+*.mp3
+node_modules/

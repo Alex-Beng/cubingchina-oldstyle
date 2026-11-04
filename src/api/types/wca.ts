@@ -11,7 +11,65 @@ export interface PersonProfile {
     solveAttemptStats: { solves: number; attempts: number };
   };
   events: PersonEventSummary[];
+  historyYears?: number[];
+  sumOfRanks?: {
+    single: RegionRankMap;
+    average: RegionRankMap;
+  };
+  medalStats?: MedalCount;
+  recordStats?: { wr: number; cr: number; nr: number; score: number };
+  championshipMedals?: {
+    world: MedalCount;
+    continent: MedalCount;
+    country: MedalCount;
+    extra?: unknown[];
+  };
+  championshipPodiums?: ChampionshipPodiumGroup[];
+  metPersons?: {
+    count: number;
+    worldRank: number;
+    continentRank: number;
+    countryRank: number;
+  };
 }
+
+export interface MedalCount {
+  gold: number;
+  silver: number;
+  bronze: number;
+}
+
+export interface RegionRankMap {
+  country: { sum: number; rank: number };
+  continent: { sum: number; rank: number };
+  world: { sum: number; rank: number };
+}
+
+export interface ChampionshipPodiumResult {
+  competitionId: string;
+  eventId: string;
+  competitionName: string;
+  competitionNameZh?: string | null;
+  competitionCountryId?: string;
+  personCountryId?: string;
+  date?: string;
+  position: number;
+  best: number;
+  bestFormatted?: string;
+  average: number;
+  averageFormatted?: string;
+  formatId?: string;
+  regionalSingleRecord?: string | null;
+  regionalAverageRecord?: string | null;
+  attempts?: { attemptNumber: number; value: number; valueFormatted?: string }[];
+}
+
+export interface ChampionshipPodiumGroup {
+  key: string;
+  championshipType: string;
+  results: ChampionshipPodiumResult[];
+}
+
 
 export interface PersonEventSummary {
   eventId: string;

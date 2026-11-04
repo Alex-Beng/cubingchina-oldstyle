@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "status": "completed",
+  "params": {
+    "mode": "i2i",
+    "size": "2048x1152",
+    "ratio": "16:9",
+    "gpt_size": "2K",
+    "gpt_model": "GPT-Image-2.5-Sunburst",
+    "gemini_size": "2K",
+    "quality": "medium",
+    "timeout": 180,
+    "images": [
+      "D:\\1_Dev\\Cube\\oldcubingchina\\oldlogo.png"
+    ],
+    "n": 1
+  },
+  "routes": {
+    "single": {
+      "prompt": "这是一张视频封面图,横版16:9构图。画面主体:一台复古风格的电脑窗口中,显示着2010年代早期的中国老式魔方网站首页(旧版粗饼网复刻演示),页面呈现当年的中文论坛风格:顶部导航条、表格化布局、怀旧小字号链接配色。封面上方醒目摆放参考图中的品牌Logo,Logo必须与参考图完全一致:橙黄色西瓜/太阳造型的圆形图案,黑色圆润的英文字母Cubing China字样,右侧由红、橙、黄、蓝、绿五色魔方块组成的方块图案,下方黑字标语,不得改变其图形轮廓、颜色、文字内容与比例。封面下部是主标题:纯白色加粗简体中文大字「我复刻了旧版粗饼网」,共9个字,逐字精确,禁止改动、缺字、错字或添加多余字符;标题末尾带一个巨大的亮黄色粗体感叹号「!」,感叹号尺寸夸张、造型醒目有冲击力,是画面视觉焦点之一。整体怀旧互联网复古海报风,暖橙色调呼应Logo配色,干净醒目,适合作为视频封面。画面中除标题、感叹号与Logo内文字外,不得出现任何其它文字。标题文字纯白色、无描边变形、清晰锐利。",
+      "status": "success",
+      "engine": "GPT-Image-2.5-Sunburst",
+      "attempts": 1,
+      "url": "https://myflicker.corp.kuaishou.com/api/kpandora/v1/resource/proxy/04cee14df72a63b2481d88471ae2af00509c9ae1e900caff8e30e721682aff79.png"
+    }
+  }
+}

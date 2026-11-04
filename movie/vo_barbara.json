@@ -1,0 +1,66 @@
+{
+ "voice": "barbara",
+ "engine": "local",
+ "lines": [
+  {
+   "id": "newui",
+   "text": "这是现在的粗饼网。圆角、渐变、彩色标签，很现代，也很像这几年流行的那种界面。",
+   "dur": 8.02,
+   "file": "vo/barbara/newui.wav"
+  },
+  {
+   "id": "title",
+   "text": "而这是很多人记忆里的粗饼网。我把它原样复刻了回来。",
+   "dur": 4.86,
+   "file": "vo/barbara/title.wav"
+  },
+  {
+   "id": "home",
+   "text": "首页。还是那条蓝色导航，还是左边的资讯和右边的近期赛事。",
+   "dur": 5.66,
+   "file": "vo/barbara/home.wav"
+  },
+  {
+   "id": "competition",
+   "text": "赛事列表。",
+   "dur": 1.18,
+   "file": "vo/barbara/competition.wav"
+  },
+  {
+   "id": "results",
+   "text": "成绩中心。",
+   "dur": 1.26,
+   "file": "vo/barbara/results.wav"
+  },
+  {
+   "id": "rankings",
+   "text": "排名。",
+   "dur": 0.86,
+   "file": "vo/barbara/rankings.wav"
+  },
+  {
+   "id": "records",
+   "text": "纪录。",
+   "dur": 0.82,
+   "file": "vo/barbara/records.wav"
+  },
+  {
+   "id": "person",
+   "text": "这里是选手的个人页面。个人最好成绩、奖牌数、参赛履历，数据都取自官方接口。",
+   "dur": 8.02,
+   "file": "vo/barbara/person.wav"
+  },
+  {
+   "id": "static",
+   "text": "它是纯静态的，没有服务器，一次部署就能一直访问。",
+   "dur": 5.06,
+   "file": "vo/barbara/static.wav"
+  },
+  {
+   "id": "outro",
+   "text": "新的更快、更亮、更像未来；旧的更慢、更钝、更像记忆。技术一直在往前，但往前走的人，偶尔也想回头看一眼。目前仍有部分界面没有完整复刻，还在慢慢补。",
+   "dur": 16.9,
+   "file": "vo/barbara/outro.wav"
+  }
+ ]
+}
