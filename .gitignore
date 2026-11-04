@@ -13,3 +13,10 @@ coverage/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# local-only artifacts (not part of the site)
+__pycache__/
+*.pyc
+movie/out/
+movie/vo/
+oldlogo.png
